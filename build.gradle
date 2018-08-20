@@ -1,12 +1,19 @@
 plugins {
     id 'org.spongepowered.plugin' version '0.8.1'
+
 }
 
 group = pluginGroup
 version = pluginVersion
+description = 'An MC Personal warp plugin'
+
+repositories {
+    maven { url 'https://jitpack.io' }
+}
 
 dependencies {
     compile 'org.spongepowered:spongeapi:7.0.0'
+    implementation 'io.github.NucleusPowered:Nucleus:1.5.3'
 }
 
 sponge.plugin.id = pluginId

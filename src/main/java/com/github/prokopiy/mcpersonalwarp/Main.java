@@ -8,7 +8,7 @@ import org.spongepowered.api.plugin.Plugin;
 
 @Plugin(
         id = "mc-personal-warp",
-        name = "Mc Personal Warp"
+        name = "MC Personal Warp"
 )
 public class Main {
 
