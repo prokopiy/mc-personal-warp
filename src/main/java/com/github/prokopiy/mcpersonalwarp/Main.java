@@ -1,6 +1,7 @@
 package com.github.prokopiy.mcpersonalwarp;
 
 import com.github.prokopiy.mcpersonalwarp.data.PlayerData;
+import com.github.prokopiy.mcpersonalwarp.data.WarpData;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
 import ninja.leaping.configurate.ConfigurationNode;
@@ -49,7 +50,7 @@ public class Main {
     private CommandManager cmdManager = Sponge.getCommandManager();
 
     private Map<String, PlayerData> players;
-//    private Map<String, GroupData> groups;
+    private Map<String, WarpData> warps;
 
     private Config config;
 
@@ -83,6 +84,15 @@ public class Main {
         loadData();
         logger.info("Place limiter reloaded.");
     }
+
+
+
+    public PlayerData addPlayer(PlayerData player) {
+        return this.players.put(player.getPlayerName(), player);
+    }
+
+
+
     private void loadCommands() {
 
 //        // /placelimiter whatsthis
@@ -200,10 +210,10 @@ public class Main {
 //        for (GroupData i : groupList) {
 //            this.groups.put(i.getGroupName(), i);
 //        }
-        List<PlayerData> blockList = rootNode.getNode("Blocks").getList(TypeToken.of(PlayerData.class));
+        List<PlayerData> blockList = rootNode.getNode("Players").getList(TypeToken.of(PlayerData.class));
         this.players = new HashMap<String, PlayerData>();
         for (PlayerData i : blockList) {
-            this.players.put(i.getGroupName(), i);
+            this.players.put(i.getPlayerUUID(), i);
         }
     }
 
@@ -211,7 +221,7 @@ public class Main {
         HoconConfigurationLoader loader = getDataLoader();
         ConfigurationNode rootNode = loader.load();
         rootNode.getNode("Players").setValue(PlayerData.PlayerDataSerializer.token, new ArrayList<PlayerData>(this.players.values()));
-//        rootNode.getNode("Blocks").setValue(BlockDataSerializer.token, new ArrayList<BlockData>(this.blocks.values()));
+        rootNode.getNode("Warps").setValue(WarpData.WarpDataSerializer.token, new ArrayList<WarpData>(this.warps.values()));
         loader.save(rootNode);
     }
 

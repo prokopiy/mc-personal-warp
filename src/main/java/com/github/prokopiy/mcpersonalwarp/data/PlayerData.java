@@ -1,19 +1,28 @@
 package com.github.prokopiy.mcpersonalwarp.data;
 
 import com.google.common.reflect.TypeToken;
+import com.sun.org.apache.xerces.internal.xs.StringList;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.spongepowered.api.entity.living.player.Player;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class PlayerData {
-    protected String groupname;
-    protected Integer grouplimit;
+    protected String name;
+    protected String uuid;
+    protected Integer warpLimit;
+    protected List<String> warps;
 
-    public PlayerData(String groupname, Integer grouplimit) {
-        this.groupname = groupname.toLowerCase();
-        this.grouplimit = grouplimit;
+
+    public PlayerData(String name, String uuid, Integer warpLimit) {
+        this.name = name;
+        this.uuid = uuid;
+        this.warpLimit = warpLimit;
     }
 
 
@@ -24,25 +33,32 @@ public class PlayerData {
         @Override
         public PlayerData deserialize(TypeToken<?> token, ConfigurationNode node) throws ObjectMappingException {
             return new PlayerData(
-                    node.getNode("groupname").getString(),
-                    node.getNode("grouplimit").getInt());
+                    node.getNode("name").getString(),
+                    node.getNode("uuid").getString(),
+                    node.getNode("warpLimit").getInt()
+                    );
         }
 
         @Override
-        public void serialize(TypeToken<?> token, PlayerData groupdata, ConfigurationNode node) throws ObjectMappingException {
-            node.getNode("groupname").setValue(groupdata.groupname);
-            node.getNode("grouplimit").setValue(groupdata.grouplimit);
+        public void serialize(TypeToken<?> token, PlayerData playerdata, ConfigurationNode node) throws ObjectMappingException {
+            node.getNode("name").setValue(playerdata.name);
+            node.getNode("uuid").setValue(playerdata.uuid);
+            node.getNode("warpLimit").setValue(playerdata.warpLimit);
         }
     }
 
 
 
-    public String getGroupName() {
-        return groupname;
+    public String getPlayerName() {
+        return name;
     }
 
-    public Integer getGroupLimit() {
-        return grouplimit;
+    public String getPlayerUUID() {
+        return uuid;
+    }
+
+    public Integer getWarpLimit() {
+        return warpLimit;
     }
 
 
