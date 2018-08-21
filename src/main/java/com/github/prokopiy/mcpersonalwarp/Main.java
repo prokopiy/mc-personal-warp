@@ -23,10 +23,7 @@ import org.spongepowered.api.text.Text;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Plugin(
         id = "mc-personal-warp",
@@ -66,7 +63,7 @@ public class Main {
         Sponge.getEventManager().registerListeners(this, new EventListener(this));
 
         TypeSerializers.getDefaultSerializers().registerType(TypeToken.of(PlayerData.class), new PlayerData.PlayerDataSerializer());
-//        TypeSerializers.getDefaultSerializers().registerType(TypeToken.of(BlockData.class), new BlockData.BlockDataSerializer());
+        TypeSerializers.getDefaultSerializers().registerType(TypeToken.of(WarpData.class), new WarpData.WarpDataSerializer());
 
         loadCommands(); logger.info("Load commands...");
         loadData(); logger.info("Load data...");
@@ -82,7 +79,7 @@ public class Main {
     public void onPluginReload(GameReloadEvent event) throws IOException, ObjectMappingException {
         this.config = new Config(this);
         loadData();
-        logger.info("Place limiter reloaded.");
+        logger.info("MC Personal Warp reloaded.");
     }
 
 
@@ -90,6 +87,76 @@ public class Main {
     public PlayerData addPlayer(PlayerData player) {
         return this.players.put(player.getPlayerName(), player);
     }
+
+
+    public boolean playerNameExists(String name) {
+        final List<PlayerData> list = new ArrayList<PlayerData>(getPlayersData());
+        for (PlayerData i : list) {
+            if (i.getPlayerName().equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    public String getWarpOwner(String warpName) {
+        final List<WarpData> list = new ArrayList<WarpData>(getWarpsData());
+        for (WarpData i : list) {
+            if (i.getWarpName().equals(warpName)) {
+                return i.getOwnerName();
+            }
+        }
+        return null;
+    }
+
+    public Integer getWarpCount(String playerName) {
+        Integer cnt = 0;
+        final List<WarpData> list = new ArrayList<WarpData>(getWarpsData());
+        for (WarpData i : list) {
+            if (i.getOwnerName().equals(playerName)) {
+                cnt += 1;
+            }
+        }
+        return cnt;
+    }
+
+    public Collection<PlayerData> getPlayersData() {
+        return Collections.unmodifiableCollection(this.players.values());
+    }
+    public Collection<WarpData> getWarpsData() {
+        return Collections.unmodifiableCollection(this.warps.values());
+    }
+
+    public HoconConfigurationLoader getDataLoader() {
+        return HoconConfigurationLoader.builder().setPath(this.ConfigDir.resolve("data.conf")).build();
+    }
+
+    private void loadData() throws IOException, ObjectMappingException {
+        HoconConfigurationLoader loader = getDataLoader();
+        ConfigurationNode rootNode = loader.load();
+//        List<GroupData> groupList = rootNode.getNode("Groups").getList(TypeToken.of(GroupData.class));
+//        this.groups = new HashMap<String, GroupData>();
+//        for (GroupData i : groupList) {
+//            this.groups.put(i.getGroupName(), i);
+//        }
+        List<PlayerData> blockList = rootNode.getNode("Players").getList(TypeToken.of(PlayerData.class));
+        this.players = new HashMap<String, PlayerData>();
+        for (PlayerData i : blockList) {
+            this.players.put(i.getPlayerUUID(), i);
+        }
+    }
+
+    public void saveData() throws IOException, ObjectMappingException {
+        HoconConfigurationLoader loader = getDataLoader();
+        ConfigurationNode rootNode = loader.load();
+        rootNode.getNode("Players").setValue(PlayerData.PlayerDataSerializer.token, new ArrayList<PlayerData>(this.players.values()));
+        rootNode.getNode("Warps").setValue(WarpData.WarpDataSerializer.token, new ArrayList<WarpData>(this.warps.values()));
+        loader.save(rootNode);
+    }
+
+
+
 
 
 
@@ -198,32 +265,7 @@ public class Main {
     }
 
 
-    public HoconConfigurationLoader getDataLoader() {
-        return HoconConfigurationLoader.builder().setPath(this.ConfigDir.resolve("data.conf")).build();
-    }
 
-    private void loadData() throws IOException, ObjectMappingException {
-        HoconConfigurationLoader loader = getDataLoader();
-        ConfigurationNode rootNode = loader.load();
-//        List<GroupData> groupList = rootNode.getNode("Groups").getList(TypeToken.of(GroupData.class));
-//        this.groups = new HashMap<String, GroupData>();
-//        for (GroupData i : groupList) {
-//            this.groups.put(i.getGroupName(), i);
-//        }
-        List<PlayerData> blockList = rootNode.getNode("Players").getList(TypeToken.of(PlayerData.class));
-        this.players = new HashMap<String, PlayerData>();
-        for (PlayerData i : blockList) {
-            this.players.put(i.getPlayerUUID(), i);
-        }
-    }
-
-    public void saveData() throws IOException, ObjectMappingException {
-        HoconConfigurationLoader loader = getDataLoader();
-        ConfigurationNode rootNode = loader.load();
-        rootNode.getNode("Players").setValue(PlayerData.PlayerDataSerializer.token, new ArrayList<PlayerData>(this.players.values()));
-        rootNode.getNode("Warps").setValue(WarpData.WarpDataSerializer.token, new ArrayList<WarpData>(this.warps.values()));
-        loader.save(rootNode);
-    }
 
 
 
