@@ -4,17 +4,18 @@ public class Permissions {
 //    public static final String LIST_BANNED_ITEMS = "placerestrict.commands.list";
 
     //For specific items, Use as: mmcrestrict.bypass.[use/own].[ItemID/*] , ItemID can be found using /restrict whatsthis or /whatsthis with an item in hand
-    public static final String BYPASS_LIMITED_BLOCK = "placelimiter.bypass";
+//    public static final String BYPASS_LIMITED_BLOCK = "placelimiter.bypass";
 
-    public static final String WARP_SET   = "mcpersonalwarp.commands.user.set";
-//    public static final String GROUP_ADD    = "mcpersonalwarp.commands.group.add";
-//    public static final String GROUP_REMOVE = "mcpersonalwarp.commands.group.remove";
-//    public static final String GROUP_UPDATE = "mcpersonalwarp.commands.group.update";
-//    public static final String GROUP_INFO   = "mcpersonalwarp.commands.group.info";
-//    public static final String GROUP_LIST   = "mcpersonalwarp.commands.group.list";
-//    public static final String BLOCK_ADD    = "mcpersonalwarp.commands.block.add";
-//    public static final String BLOCK_REMOVE = "mcpersonalwarp.commands.block.remove";
-//    public static final String UPDATE_BLOCK = "mcpersonalwarp.commands.block.update";
+    private static final String PLUGIN_ID = "mcpersonalwarp";
+    public static final String PWARP_PLAYERINFO  = PLUGIN_ID + ".commands.user.info";
+    public static final String PWARP_SET         = PLUGIN_ID + ".commands.user.set";
+    public static final String PWARP_REMOVE      = PLUGIN_ID + ".commands.user.remove";
+    public static final String PWARP_REMOVEOTHER = PLUGIN_ID + ".commands.admin.removeother";
+    public static final String PWARP_SYNC        = PLUGIN_ID + ".commands.admin.sync";
+    public static final String PWARP_SETLIMIT    = PLUGIN_ID + ".commands.admin.setlimit";
+    public static final String PWARP_INCLIMIT    = PLUGIN_ID + ".commands.admin.inclimit";
+
+
 
 }
 

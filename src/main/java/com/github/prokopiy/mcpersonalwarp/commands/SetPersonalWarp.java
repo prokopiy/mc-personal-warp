@@ -1,6 +1,5 @@
 package com.github.prokopiy.mcpersonalwarp.commands;
 
-//import com.crycode.mc.placerestrict.placerestrict.Config;
 
 import com.github.prokopiy.mcpersonalwarp.Main;
 import com.github.prokopiy.mcpersonalwarp.data.PlayerData;
@@ -36,7 +35,7 @@ public class SetPersonalWarp implements CommandExecutor {
         Optional<NucleusWarpService> warpService = Sponge.getServiceManager().provide(NucleusWarpService.class);
         if (warpService.isPresent()) {
             if (plugin.warpNameExists(warpName) | (warpService.get().warpExists(warpName))) {
-                throw new CommandException(Text.of("Personal warp already exists!"));
+                throw new CommandException(Text.of(warpName + " already exists!"));
             } else {
                 if (!plugin.playerNameExists(player.getName())) {
                     plugin.addPlayer(new PlayerData(player.getName(), player.getUniqueId().toString(), 0));
@@ -47,24 +46,29 @@ public class SetPersonalWarp implements CommandExecutor {
                         e.printStackTrace();
                     }
                 }
-                if (plugin.getPlayerWarpLimit(player.getName()) > 0) {
+                Integer warpLimit = plugin.getPlayerWarpLimit(player.getName());
+                if (warpLimit > 0) {
+                    if (warpService.get().setWarp(warpName, player.getLocation(), player.getRotation())) {
+                        warpService.get().setWarpDescription(warpName, plugin.fromLegacy(" by " + player.getName()));
+                        plugin.addPWarp(new WarpData(warpName, player.getName(), player.getUniqueId().toString()));
 
-                    warpService.get().setWarp(warpName, player.getLocation(), player.getRotation());
-                    plugin.addWarp(new WarpData(warpName, player.getName(), player.getUniqueId().toString()));
+                        PlayerData playerData = plugin.getPlayerData(player.getName());
+                        Integer newlimit = playerData.getWarpLimit() - 1;
+                        playerData.setWarpLimit(newlimit);
+                        plugin.addPlayer(playerData);
 
-                    try {
-                        plugin.saveData();
-                    } catch (Exception e) {
-                        player.sendMessage(Text.of("Data was not saved correctly."));
-                        e.printStackTrace();
+                        player.sendMessage(Text.of("Personal warp created!"));
+                        try {
+                            plugin.saveData();
+                        } catch (Exception e) {
+                            player.sendMessage(Text.of("Data was not saved correctly."));
+                            e.printStackTrace();
+                        }
                     }
                 } else {
                     throw new CommandException(Text.of("Personal warp limited!"));
                 }
-
-
             }
-
         } else {
             throw new CommandException(Text.of("NucleusWarpService not present!"));
         }

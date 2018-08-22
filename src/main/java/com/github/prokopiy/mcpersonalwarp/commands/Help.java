@@ -31,14 +31,16 @@ public class Help implements CommandExecutor {
         PaginationService paginationService = Sponge.getServiceManager().provide(PaginationService.class).get();
 
         List<Text> contents = new ArrayList<>();
-        if (sender.hasPermission(Permissions.WARP_SET)) contents.add(plugin.fromLegacy("&3/pwarp set &b[WarpName] - &7Set presonal warp in current player position."));
-//        if (sender.hasPermission(Permissions.GROUP_ADD)) contents.add(plugin.fromLegacy("&3/placelimiter &bgroup [add] [GroupName] - &7Add group."));
-//        if (sender.hasPermission(Permissions.GROUP_REMOVE)) contents.add(plugin.fromLegacy("&3/placelimiter &bgroup [remove] [GroupName] - &7Remove group and all blocks in."));
-//        if (sender.hasPermission(Permissions.GROUP_UPDATE)) contents.add(plugin.fromLegacy("&3/placelimiter &bgroup [update] [GroupName] - &7Update new limit of group."));
-//        if (sender.hasPermission(Permissions.GROUP_INFO)) contents.add(plugin.fromLegacy("&3/placelimiter &bgroup [info] [GroupName] - &7Show group info."));
-//        if (sender.hasPermission(Permissions.GROUP_LIST)) contents.add(plugin.fromLegacy("&3/placelimiter &bgroup [list] - &7Show list of groups."));
-//        if (sender.hasPermission(Permissions.BLOCK_ADD)) contents.add(plugin.fromLegacy("&3/placelimiter &bblock [add] [GroupName]- &7Add block, the player is looking at, to the limited block group."));
-//        if (sender.hasPermission(Permissions.BLOCK_REMOVE)) contents.add(plugin.fromLegacy("&3/placelimiter &bblock [remove] - &7Remove block, the player is looking at, to the limited block list."));
+        if (sender.hasPermission(Permissions.PWARP_PLAYERINFO))
+            contents.add(plugin.fromLegacy("&3/pwarp &binfo - &7Show personal warp info"));
+        if (sender.hasPermission(Permissions.PWARP_SET))
+            contents.add(plugin.fromLegacy("&3/pwarp &bset [WarpName] - &7Set personal warp in current position."));
+        if (sender.hasPermission(Permissions.PWARP_SETLIMIT))
+            contents.add(plugin.fromLegacy("&3/pwarp &bsetlimit [PlayerName] [NewLimit] - &7Set players warps limit."));
+        if (sender.hasPermission(Permissions.PWARP_INCLIMIT))
+            contents.add(plugin.fromLegacy("&3/pwarp &binclimit [PlayerName] [Count] - &7Increase players warps limit by Count."));
+        if (sender.hasPermission(Permissions.PWARP_REMOVE) | sender.hasPermission(Permissions.PWARP_REMOVEOTHER))
+            contents.add(plugin.fromLegacy("&3/pwarp &bremove [WarpName] - &7Remove personal warp."));
 
         if (contents.isEmpty()) {
             contents.add(plugin.fromLegacy("&cYou currently do not have any permissions for this plugin."));

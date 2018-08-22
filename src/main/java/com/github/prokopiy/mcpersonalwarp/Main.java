@@ -1,11 +1,11 @@
 package com.github.prokopiy.mcpersonalwarp;
 
-import com.github.prokopiy.mcpersonalwarp.commands.Help;
-import com.github.prokopiy.mcpersonalwarp.commands.SetPersonalWarp;
+import com.github.prokopiy.mcpersonalwarp.commands.*;
 import com.github.prokopiy.mcpersonalwarp.data.PlayerData;
 import com.github.prokopiy.mcpersonalwarp.data.WarpData;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
+import io.github.nucleuspowered.nucleus.api.service.NucleusWarpService;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
@@ -21,6 +21,7 @@ import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.plugin.Plugin;
+import org.spongepowered.api.profile.GameProfileManager;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.serializer.TextSerializers;
 
@@ -37,7 +38,7 @@ public class Main {
     private static Main instance;
 
     @Inject
-    private Logger logger;
+    public Logger logger;
 
     @Inject
     @DefaultConfig(sharedRoot = false)
@@ -57,13 +58,10 @@ public class Main {
 
 
 
-
-
     @Listener
     public void Init(GameInitializationEvent event) throws IOException, ObjectMappingException {
         instance = this;
         this.config = new Config(this);
-        Sponge.getEventManager().registerListeners(this, new EventListener(this));
 
         TypeSerializers.getDefaultSerializers().registerType(TypeToken.of(PlayerData.class), new PlayerData.PlayerDataSerializer());
         TypeSerializers.getDefaultSerializers().registerType(TypeToken.of(WarpData.class), new WarpData.WarpDataSerializer());
@@ -75,6 +73,9 @@ public class Main {
 
     @Listener
     public void onServerStart(GameStartedServerEvent event) {
+        logger.info("Sync witch warp service...!");
+        syncWarpService();
+        logger.info("MC Personal Warp started!");
     }
 
 
@@ -86,9 +87,26 @@ public class Main {
     }
 
 
+    public void syncWarpService(){
+        Optional<NucleusWarpService> warpService = Sponge.getServiceManager().provide(NucleusWarpService.class);
+        if (warpService.isPresent()) {
+            final List<WarpData> list = new ArrayList<WarpData>(getWarpsData());
+            for (WarpData i : list) {
+                String warpName = i.getWarpName();
+
+                if (!warpService.get().warpExists(warpName)) {
+                    removePWarp(warpName);
+                }
+            }
+        }
+    }
 
     public PlayerData addPlayer(PlayerData player) {
         return this.players.put(player.getPlayerName(), player);
+    }
+
+    public PlayerData updatePlayer(PlayerData player) {
+        return this.players.replace(player.getPlayerName(), player);
     }
 
 
@@ -100,6 +118,16 @@ public class Main {
             }
         }
         return false;
+    }
+
+    public PlayerData getPlayerData(String name) {
+        final List<PlayerData> list = new ArrayList<PlayerData>(getPlayersData());
+        for (PlayerData i : list) {
+            if (i.getPlayerName().equals(name)) {
+                return i;
+            }
+        }
+        return null;
     }
 
     public Integer getPlayerWarpLimit(String playerName) {
@@ -124,8 +152,12 @@ public class Main {
     }
 
 
-    public WarpData addWarp(WarpData warp) {
+    public WarpData addPWarp(WarpData warp) {
         return this.warps.put(warp.getWarpName(), warp);
+    }
+
+    public WarpData removePWarp(String warpName) {
+        return this.warps.remove(warpName);
     }
 
 
@@ -194,71 +226,56 @@ public class Main {
 
     private void loadCommands() {
 
-        // /personalwarp whatsthis
+        // /pwarp set
         CommandSpec setPersonalWarp = CommandSpec.builder()
                 .description(Text.of(""))
                 .executor(new SetPersonalWarp(this))
                 .arguments(GenericArguments.string(Text.of("WarpName")))
-                .permission(Permissions.WARP_SET)
+                .permission(Permissions.PWARP_SET)
                 .build();
 
-//        // /placelimiter addgroup
-//        CommandSpec groupAdd = CommandSpec.builder()
-//                .description(Text.of("Add group"))
-//                .executor(new AddGroup(this))
-//                .arguments(GenericArguments.optional(GenericArguments.string(Text.of("GroupName"))),
-//                        GenericArguments.optional(GenericArguments.integer(Text.of("GroupLimit"))))
-//                .permission(Permissions.GROUP_ADD)
-//                .build();
-//
-//        // /placelimiter removegroup
-//        CommandSpec groupRemove = CommandSpec.builder()
-//                .description(Text.of("Remove group and all block in this"))
-//                .executor(new RemoveGroup(this))
-//                .arguments(GenericArguments.string(Text.of("GroupName")))
-//                .permission(Permissions.GROUP_REMOVE)
-//                .build();
-//
-//        // /placelimiter updategroup
-//        CommandSpec groupUpdate = CommandSpec.builder()
-//                .description(Text.of("Update group limit"))
-//                .executor(new UpdateGroup(this))
-//                .arguments(GenericArguments.optional(GenericArguments.string(Text.of("GroupName"))),
-//                        GenericArguments.optional(GenericArguments.integer(Text.of("GroupLimit"))))
-//                .permission(Permissions.GROUP_UPDATE)
-//                .build();
-//
-//        // /placelimiter group info
-//        CommandSpec groupInfo = CommandSpec.builder()
-//                .description(Text.of("Info group limit"))
-//                .executor(new InfoGroup(this))
-//                .arguments(GenericArguments.optional(GenericArguments.string(Text.of("GroupName"))))
-//                .permission(Permissions.GROUP_INFO)
-//                .build();
-//
-//        // /placelimiter group list
-//        CommandSpec groupList = CommandSpec.builder()
-//                .description(Text.of("Groups list"))
-//                .executor(new ListGroup(this))
-//                .permission(Permissions.GROUP_LIST)
-//                .build();
-//
-//        // /placelimiter block add
-//        CommandSpec blockAddLookAt = CommandSpec.builder()
-//                .description(Text.of("Add the block, the player is looking at, to the group of limited blocks"))
-//                .executor(new LookAt(this))
-//                .arguments(GenericArguments.string(Text.of("GroupName")))
-//                .permission(Permissions.BLOCK_ADD)
-//                .build();
-//
-//
-//        // /placelimiter block remove
-//        CommandSpec blockRemove = CommandSpec.builder()
-//                .description(Text.of("Remove limited block"))
-//                .executor(new RemoveBlock(this))
-//                .arguments(GenericArguments.remainingJoinedStrings(Text.of("BlockId")))
-//                .permission(Permissions.BLOCK_REMOVE)
-//                .build();
+        // /pwarp setlimit
+        CommandSpec setLimit = CommandSpec.builder()
+                .description(Text.of(""))
+                .executor(new SetLimit(this))
+                .arguments(GenericArguments.optional(GenericArguments.string(Text.of("PlayerName"))),
+                        GenericArguments.optional(GenericArguments.integer(Text.of("NewLimit"))))
+                .permission(Permissions.PWARP_SETLIMIT)
+                .build();
+
+        // /pwarp inclimit
+        CommandSpec incLimit = CommandSpec.builder()
+                .description(Text.of(""))
+                .executor(new IncLimit(this))
+                .arguments(GenericArguments.optional(GenericArguments.string(Text.of("PlayerName"))),
+                        GenericArguments.optional(GenericArguments.integer(Text.of("Count"))))
+                .permission(Permissions.PWARP_INCLIMIT)
+                .build();
+
+        // /pwarp info
+        CommandSpec playerInfo = CommandSpec.builder()
+                .description(Text.of("Player's warp info"))
+                .executor(new PlayerInfo(this))
+                .permission(Permissions.PWARP_PLAYERINFO)
+                .build();
+
+        // /pwarp sync
+        CommandSpec sync = CommandSpec.builder()
+                .description(Text.of("Syncronize with warp service"))
+                .executor(new Sync(this))
+                .permission(Permissions.PWARP_SYNC)
+                .build();
+
+
+        // /pwarp remove
+        CommandSpec removePersonalWarp = CommandSpec.builder()
+                .description(Text.of("Remove player's warp"))
+                .executor(new RemovePersonalWarp(this))
+                .arguments(GenericArguments.string(Text.of("WarpName")))
+                .permission(Permissions.PWARP_REMOVE)
+                .build();
+
+
 //
 //
 //        // /placelimiter block
@@ -281,17 +298,19 @@ public class Main {
 //                .build();
 //
 //
-//        // /placerestrict
+        // /pwarp
         CommandSpec pwarp = CommandSpec.builder()
-                .description(Text.of("Base personalwarp command"))
+                .description(Text.of("Base Personal Warp command"))
                 .executor(new Help(this))
                 .child(setPersonalWarp, "set")
+                .child(removePersonalWarp, "remove")
+                .child(setLimit, "setlimit")
+                .child(incLimit, "inclimit")
+                .child(playerInfo, "info")
+                .child(sync, "sync")
                 .build();
 
-//        cmdManager.register(this, bannedList, "banneditems");
 //        cmdManager.register(this, whatsThis, "whatsthis");
-//        cmdManager.register(this, itemAddLookAt, "itemAddLookAt");
-//        cmdManager.register(this, itemAddHand, "itemAddHand");
         cmdManager.register(this, pwarp, "pwarp");
     }
 

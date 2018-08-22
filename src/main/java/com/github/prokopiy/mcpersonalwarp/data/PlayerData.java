@@ -1,16 +1,11 @@
 package com.github.prokopiy.mcpersonalwarp.data;
 
 import com.google.common.reflect.TypeToken;
-import com.sun.org.apache.xerces.internal.xs.StringList;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.spongepowered.api.entity.living.player.Player;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class PlayerData {
     protected String name;
@@ -59,6 +54,10 @@ public class PlayerData {
 
     public Integer getWarpLimit() {
         return warpLimit;
+    }
+
+    public void setWarpLimit(Integer newlimit) {
+        warpLimit = newlimit;
     }
 
 
