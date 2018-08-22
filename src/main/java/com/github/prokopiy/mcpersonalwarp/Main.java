@@ -1,5 +1,7 @@
 package com.github.prokopiy.mcpersonalwarp;
 
+import com.github.prokopiy.mcpersonalwarp.commands.Help;
+import com.github.prokopiy.mcpersonalwarp.commands.SetPersonalWarp;
 import com.github.prokopiy.mcpersonalwarp.data.PlayerData;
 import com.github.prokopiy.mcpersonalwarp.data.WarpData;
 import com.google.common.reflect.TypeToken;
@@ -20,6 +22,7 @@ import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.serializer.TextSerializers;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -99,6 +102,32 @@ public class Main {
         return false;
     }
 
+    public Integer getPlayerWarpLimit(String playerName) {
+        final List<PlayerData> list = new ArrayList<PlayerData>(getPlayersData());
+        for (PlayerData i : list) {
+            if (i.getPlayerName().equals(playerName)) {
+                return i.getWarpLimit();
+            }
+        }
+        return 0;
+    }
+
+    public boolean warpNameExists(String warpName) {
+//        return this.players.containsKey(warpName);
+        final List<WarpData> list = new ArrayList<WarpData>(getWarpsData());
+        for (WarpData i : list) {
+            if (i.getWarpName().equals(warpName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    public WarpData addWarp(WarpData warp) {
+        return this.warps.put(warp.getWarpName(), warp);
+    }
+
 
     public String getWarpOwner(String warpName) {
         final List<WarpData> list = new ArrayList<WarpData>(getWarpsData());
@@ -121,6 +150,9 @@ public class Main {
         return cnt;
     }
 
+
+
+
     public Collection<PlayerData> getPlayersData() {
         return Collections.unmodifiableCollection(this.players.values());
     }
@@ -135,14 +167,14 @@ public class Main {
     private void loadData() throws IOException, ObjectMappingException {
         HoconConfigurationLoader loader = getDataLoader();
         ConfigurationNode rootNode = loader.load();
-//        List<GroupData> groupList = rootNode.getNode("Groups").getList(TypeToken.of(GroupData.class));
-//        this.groups = new HashMap<String, GroupData>();
-//        for (GroupData i : groupList) {
-//            this.groups.put(i.getGroupName(), i);
-//        }
-        List<PlayerData> blockList = rootNode.getNode("Players").getList(TypeToken.of(PlayerData.class));
+        List<WarpData> warpList = rootNode.getNode("Warps").getList(TypeToken.of(WarpData.class));
+        this.warps = new HashMap<String, WarpData>();
+        for (WarpData i : warpList) {
+            this.warps.put(i.getWarpName(), i);
+        }
+        List<PlayerData> playerList = rootNode.getNode("Players").getList(TypeToken.of(PlayerData.class));
         this.players = new HashMap<String, PlayerData>();
-        for (PlayerData i : blockList) {
+        for (PlayerData i : playerList) {
             this.players.put(i.getPlayerUUID(), i);
         }
     }
@@ -162,13 +194,14 @@ public class Main {
 
     private void loadCommands() {
 
-//        // /placelimiter whatsthis
-//        CommandSpec whatsThis = CommandSpec.builder()
-//                .description(Text.of("Show the block ID the player is looking at"))
-//                .executor(new Whatsthis(this))
-//                .permission(Permissions.WHATS_THIS)
-//                .build();
-//
+        // /personalwarp whatsthis
+        CommandSpec setPersonalWarp = CommandSpec.builder()
+                .description(Text.of(""))
+                .executor(new SetPersonalWarp(this))
+                .arguments(GenericArguments.string(Text.of("WarpName")))
+                .permission(Permissions.WARP_SET)
+                .build();
+
 //        // /placelimiter addgroup
 //        CommandSpec groupAdd = CommandSpec.builder()
 //                .description(Text.of("Add group"))
@@ -250,11 +283,9 @@ public class Main {
 //
 //        // /placerestrict
         CommandSpec pwarp = CommandSpec.builder()
-                .description(Text.of("Base placelimiter command"))
-//                .executor(new Help(this))
-//                .child(whatsThis, "whatsthis")
-//                .child(block, "block")
-//                .child(group, "group")
+                .description(Text.of("Base personalwarp command"))
+                .executor(new Help(this))
+                .child(setPersonalWarp, "set")
                 .build();
 
 //        cmdManager.register(this, bannedList, "banneditems");
@@ -267,6 +298,9 @@ public class Main {
 
 
 
+    public Text fromLegacy(String legacy) {
+        return TextSerializers.FORMATTING_CODE.deserializeUnchecked(legacy);
+    }
 
 
 }
