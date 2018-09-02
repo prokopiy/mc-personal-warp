@@ -29,7 +29,6 @@ public class IncLimit implements CommandExecutor {
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         String playerName = args.<String>getOne("PlayerName").get();
         Integer count = args.<Integer>getOne("Count").get();
-        Player player = (Player) src;
         PlayerData playerData;
         if (!plugin.playerNameExists(playerName)) {
             Optional<UserStorageService> userStorage = Sponge.getServiceManager().provide(UserStorageService.class);
@@ -44,12 +43,12 @@ public class IncLimit implements CommandExecutor {
         Integer newlimit = playerData.getWarpLimit() + count;
         playerData.setWarpLimit(newlimit);
         plugin.addPlayer(playerData);
-        player.sendMessage(plugin.fromLegacy("&6Set personal warp limit for &e" + playerName + " &6to &e" + newlimit.toString()));
+//        player.sendMessage(plugin.fromLegacy("&6Set personal warp limit for &e" + playerName + " &6to &e" + newlimit.toString()));
 
         try {
             plugin.saveData();
         } catch (Exception e) {
-            player.sendMessage(Text.of("Data was not saved correctly."));
+//            player.sendMessage(Text.of("Data was not saved correctly."));
             e.printStackTrace();
         }
 
